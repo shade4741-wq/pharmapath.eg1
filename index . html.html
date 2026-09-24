@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaPath - منصة التوظيف والمسار المهني للصيدلي</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        @media print {
+            body * { visibility: hidden; }
+            #cv-preview-card, #cv-preview-card * { visibility: visible; }
+            #cv-preview-card { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchMainRole('pharmacist')">
+                    <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center font-bold text-slate-900 text-xl shadow-lg shadow-teal-500/20">
+                        <i class="fa-solid fa-pills"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold tracking-tight bg-gradient-to-l from-teal-400 to-emerald-200 bg-clip-text text-transparent">PharmaPath</span>
+                        <span class="text-[10px] block text-slate-400 -mt-1 font-semibold">دليلك المهني الصيدلي</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Pharmacist Mode) -->
+                <nav id="pharmacist-nav" class="hidden md:flex space-x-1 space-x-reverse text-sm font-medium">
+                    <button onclick="switchTab('jobs')" class="nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-teal-400 font-bold" data-tab="jobs">
+                        <i class="fa-solid fa-briefcase ml-1.5"></i>الوظائف
+                    </button>
+                    <button onclick="switchTab('paths')" class="nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-slate-300" data-tab="paths">
+                        <i class="fa-solid fa-route ml-1.5"></i>المسارات المهنية
+                    </button>
+                    <button onclick="switchTab('cv')" class="nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-slate-300" data-tab="cv">
+                        <i class="fa-solid fa-file-invoice ml-1.5"></i>منشئ الـ CV
+                    </button>
+                    <button onclick="switchTab('applications')" class="nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-slate-300 relative" data-tab="applications">
+                        <i class="fa-solid fa-paper-plane ml-1.5"></i>طلباتي
+                        <span id="app-badge" class="bg-teal-500 text-slate-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full mr-1 hidden">0</span>
+                    </button>
+                </nav>
+
+                <!-- Navigation Tabs (Employer Mode) -->
+                <nav id="employer-nav" class="hidden md:flex space-x-1 space-x-reverse text-sm font-medium">
+                    <button onclick="switchTab('emp-dashboard')" class="emp-nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-teal-400 font-bold" data-tab="emp-dashboard">
+                        <i class="fa-solid fa-chart-line ml-1.5"></i>لوحة التحكم
+                    </button>
+                    <button onclick="switchTab('post-job')" class="emp-nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-slate-300" data-tab="post-job">
+                        <i class="fa-solid fa-plus-circle ml-1.5"></i>نشر وظيفة
+                    </button>
+                    <button onclick="switchTab('candidates')" class="emp-nav-btn px-3 py-2 rounded-lg transition hover:bg-slate-800 text-slate-300" data-tab="candidates">
+                        <i class="fa-solid fa-users-viewfinder ml-1.5"></i>البحث عن صيادلة
+                    </button>
+                </nav>
+
+                <!-- Role Switcher Button -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <button id="role-toggle-btn" onclick="toggleMainRole()" class="text-xs bg-slate-800 hover:bg-slate-700 text-teal-300 font-semibold px-3 py-2 rounded-lg border border-slate-700 transition flex items-center">
+                        <i class="fa-solid fa-building-user ml-1.5 text-teal-400"></i>
+                        <span id="role-btn-text">حساب الشركات والصيدليات</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- ================= PHARMACIST VIEW ================= -->
+
+        <!-- TAB 1: JOBS & FEED -->
+        <div id="tab-jobs" class="tab-content active space-y-6">
+            <!-- Hero Search Header -->
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-teal-950 text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+                <div class="relative z-10 max-w-3xl">
+                    <span class="inline-block px-3 py-1 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full text-xs font-semibold mb-3">PharmaPath Opportunities</span>
+                    <h1 class="text-2xl md:text-4xl font-extrabold mb-2">اعثر على خطوتك القادمة في عالم الصيدلة</h1>
+                    <p class="text-slate-300 text-sm md:text-base mb-6">آلاف الفرص الوظيفية المخصصة للصيادلة في مصر في مختلف التخصصات والقطاعات.</p>
+                    
+                    <!-- Search Bar -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/10">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute right-3 top-3.5 text-slate-400"></i>
+                            <input type="text" id="search-title" placeholder="المسمى الوظيفي أو المهارة..." class="w-full bg-white text-slate-800 pr-9 pl-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute right-3 top-3.5 text-slate-400"></i>
+                            <select id="search-location" class="w-full bg-white text-slate-800 pr-9 pl-3 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="">كل المحافظات</option>
+                                <option value="المنصورة">المنصورة</option>
+                                <option value="القاهرة">القاهرة</option>
+                                <option value="الجيزة">الجيزة</option>
+                                <option value="الإسكندرية">الإسكندرية</option>
+                                <option value="الشرقية">الشرقية</option>
+                            </select>
+                        </div>
+                        <button onclick="filterJobs()" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold px-4 py-2.5 rounded-lg text-sm transition shadow-md shadow-teal-500/30 flex items-center justify-center">
+                            <i class="fa-solid fa-filter ml-2"></i>بحث عن الوظائف
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Category Badges -->
+            <div class="flex items-center space-x-2 space-x-reverse overflow-x-auto pb-2 scrollbar-none text-xs">
+                <button onclick="filterCategory('all')" class="cat-btn bg-slate-900 text-white font-bold px-4 py-2 rounded-xl shadow-sm whitespace-nowrap">الكل</button>
+                <button onclick="filterCategory('Community')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">🏪 صيدليات مجتمعية</button>
+                <button onclick="filterCategory('Hospital')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">🏥 مستشفيات</button>
+                <button onclick="filterCategory('Clinical')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">🔬 صيدلة إكلينيكية</button>
+                <button onclick="filterCategory('Medical Rep')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">💼 دعاية طبية (Medical Rep)</button>
+                <button onclick="filterCategory('Industry')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">🧪 مصانع وشركات أدوية</button>
+                <button onclick="filterCategory('Remote')" class="cat-btn bg-white hover:bg-slate-100 border text-slate-700 px-4 py-2 rounded-xl whitespace-nowrap">💻 وظائف عن بُعد</button>
+            </div>
+
+            <!-- Job Feed & Details Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Job List -->
+                <div class="lg:col-span-2 space-y-4" id="job-list-container">
+                    <!-- Dynamic Job Cards Generated Here -->
+                </div>
+
+                <!-- Career Path Highlight Sidebar -->
+                <div class="space-y-4">
+                    <div class="bg-gradient-to-br from-teal-500 to-emerald-600 text-slate-900 p-6 rounded-2xl shadow-lg">
+                        <span class="bg-slate-900/20 text-slate-900 text-xs font-extrabold px-2.5 py-1 rounded-md uppercase">بوصلة الصيدلي</span>
+                        <h3 class="text-xl font-bold mt-2">لا تعرف أي مسار تختار؟</h3>
+                        <p class="text-xs text-slate-900/80 mt-1 mb-4 leading-relaxed">استكشف المهارات المحددة والشهادات المطلوبة لكل تخصص صيدلاني لمعرفة متطلبات سوق العمل قبل التقديم.</p>
+                        <button onclick="switchTab('paths')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
+                            استكشف خريطة المسارات المهنية <i class="fa-solid fa-arrow-left mr-1"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-sm mb-3">دورات تدريبية موصى بها</h4>
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-teal-600 font-bold">كورس OTC & Patient Counseling</span>
+                                <p class="text-slate-500 text-[11px] mt-0.5">معتمد لإعداد صيادلة الصيدليات المجتمعية.</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-teal-600 font-bold">أساسيات Pharmacovigilance</span>
+                                <p class="text-slate-500 text-[11px] mt-0.5">مدخل ممتاز للمجال الرقابي بشركات الأدوية.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CAREER PATHS EXPLORER -->
+        <div id="tab-paths" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-900 mb-1">المسارات المهنية للصيدلي (Pharmacist Career Paths)</h2>
+                <p class="text-slate-500 text-sm">اختر التخصص لمعرفة الخطوات المطلوبة، المهارات الأساسية، الكورسات الموصى بها، والراتب المتوقع.</p>
+            </div>
+
+            <!-- Path Tabs -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <button onclick="showPathDetail('community')" class="path-btn p-3 bg-white hover:bg-teal-50 border border-slate-200 rounded-xl text-center transition active-path" data-path="community">
+                    <i class="fa-solid fa-store text-xl text-teal-600 mb-1 block"></i>
+                    <span class="text-xs font-bold text-slate-800">صيدلية مجتمعية</span>
+                </button>
+                <button onclick="showPathDetail('hospital')" class="path-btn p-3 bg-white hover:bg-teal-50 border border-slate-200 rounded-xl text-center transition" data-path="hospital">
+                    <i class="fa-solid fa-hospital text-xl text-teal-600 mb-1 block"></i>
+                    <span class="text-xs font-bold text-slate-800">صيدلية مستشفيات</span>
+                </button>
+                <button onclick="showPathDetail('clinical')" class="path-btn p-3 bg-white hover:bg-teal-50 border border-slate-200 rounded-xl text-center transition" data-path="clinical">
+                    <i class="fa-solid fa-stethoscope text-xl text-teal-600 mb-1 block"></i>
+                    <span class="text-xs font-bold text-slate-800">صيدلة إكلينيكية</span>
+                </button>
+                <button onclick="showPathDetail('medrep')" class="path-btn p-3 bg-white hover:bg-teal-50 border border-slate-200 rounded-xl text-center transition" data-path="medrep">
+                    <i class="fa-solid fa-briefcase text-xl text-teal-600 mb-1 block"></i>
+                    <span class="text-xs font-bold text-slate-800">دعاية طبية (Med Rep)</span>
+                </button>
+                <button onclick="showPathDetail('remote')" class="path-btn p-3 bg-white hover:bg-teal-50 border border-slate-200 rounded-xl text-center transition" data-path="remote">
+                    <i class="fa-solid fa-laptop-code text-xl text-teal-600 mb-1 block"></i>
+                    <span class="text-xs font-bold text-slate-800">صيدلة أونلاين / عن بعد</span>
+                </button>
+            </div>
+
+            <!-- Path Detail Container -->
+            <div id="path-detail-container" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <!-- Dynamic Content via JS -->
+            </div>
+        </div>
+
+        <!-- TAB 3: CV BUILDER -->
+        <div id="tab-cv" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">منشئ السيرة الذاتية للصيادلة (ATS Pharmacy CV)</h2>
+                    <p class="text-slate-500 text-sm">أنشئ سيرتك الذاتية بتنسيق متوافق مع أنظمة التوظيف العالمية مخصص للقطاع الطبي.</p>
+                </div>
+                <button onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center">
+                    <i class="fa-solid fa-print ml-2"></i>طباعة / حفظ PDF
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- CV Form -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-base border-b pb-2">البيانات الشخصية والمهنية</h3>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">الاسم بالكامل</label>
+                            <input type="text" id="cv-name" value="د. شادي أحمد" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">المسمى الوظيفي الحالي</label>
+                            <input type="text" id="cv-title" value="صيدلي مجتمعي خبرة" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">البريد الإلكتروني</label>
+                            <input type="email" id="cv-email" value="shady@example.com" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">رقم الهاتف / الواتساب</label>
+                            <input type="text" id="cv-phone" value="+20 100 000 0000" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">المحافظة / المدينة</label>
+                            <input type="text" id="cv-city" value="المنصورة، مصر" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">سنة التخرج والجامعة</label>
+                            <input type="text" id="cv-uni" value="جامعة المنصورة - دفعة 2024" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-slate-800 text-base border-b pb-2 pt-2">الملخص والمهارات الصيدلانية</h3>
+                    <div class="text-xs space-y-3">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">نبذة عنك (Summary)</label>
+                            <textarea id="cv-summary" rows="3" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">صيدلي شغوف ذو خبرة ممتازة في صرف الدواء، التواصل مع المرضى، وإدارة برامج برمجيات الصيدليات. أسعى لتطوير مهاراتي في الصيدلة الإكلينيكية والخدمات الطبية.</textarea>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">البرامج والأنظمة المعروفة (مثل Pharmasoft, Dawaya...)</label>
+                            <input type="text" id="cv-software" value="Pharmasoft, Dawaya, MS Office" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">المهارات والاعتمادات (مفصولة بفواصل)</label>
+                            <input type="text" id="cv-skills" value="OTC Counseling, Dispensing, Patient Safety, Inventory Management" oninput="updateCV()" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-teal-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CV Live Preview -->
+                <div class="bg-slate-200 p-4 rounded-2xl flex justify-center">
+                    <div id="cv-preview-card" class="bg-white w-full max-w-lg p-8 rounded-xl shadow-md border text-slate-800 text-xs space-y-4">
+                        <!-- Live Updated Header -->
+                        <div class="border-b-2 border-teal-600 pb-4">
+                            <h2 id="pv-name" class="text-2xl font-extrabold text-slate-900">د. شادي أحمد</h2>
+                            <p id="pv-title" class="text-teal-600 font-bold text-sm">صيدلي مجتمعي خبرة</p>
+                            <div class="flex flex-wrap gap-x-3 gap-y-1 text-slate-500 text-[11px] mt-2">
+                                <span><i class="fa-solid fa-envelope ml-1"></i><span id="pv-email">shady@example.com</span></span>
+                                <span><i class="fa-solid fa-phone ml-1"></i><span id="pv-phone">+20 100 000 0000</span></span>
+                                <span><i class="fa-solid fa-location-dot ml-1"></i><span id="pv-city">المنصورة، مصر</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-teal-700 border-b pb-1 mb-1">النبذة المهنية</h4>
+                            <p id="pv-summary" class="text-slate-600 leading-relaxed">صيدلي شغوف ذو خبرة ممتازة في صرف الدواء، التواصل مع المرضى، وإدارة برامج برمجيات الصيدليات.</p>
+                        </div>
+
+                        <!-- Education -->
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-teal-700 border-b pb-1 mb-1">المؤهل الأكاديمي</h4>
+                            <p id="pv-uni" class="font-bold text-slate-800">جامعة المنصورة - دفعة 2024</p>
+                            <p class="text-slate-500 text-[11px]">بكالوريوس العلوم الصيدلية (ترخيص مزاولة المهنة متاح)</p>
+                        </div>
+
+                        <!-- Software & Skills -->
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-teal-700 border-b pb-1 mb-1">المهارات البرمجية والفنية</h4>
+                            <p id="pv-software" class="text-slate-700 font-medium">Pharmasoft, Dawaya, MS Office</p>
+                            <div id="pv-skills-tags" class="flex flex-wrap gap-1 mt-2">
+                                <!-- Tags generated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: APPLICATIONS TRACKER -->
+        <div id="tab-applications" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-900">متابعة حالة التقديم (Applications Tracker)</h2>
+                <p class="text-slate-500 text-sm">تابع ردود الصيدليات والشركات على طلبات التوظيف الخاصة بك لحظة بلحظة.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-50 text-slate-700 font-bold border-b">
+                            <tr>
+                                <th class="p-4">الوظيفة</th>
+                                <th class="p-4">الجهة / الشركة</th>
+                                <th class="p-4">المحافظة</th>
+                                <th class="p-4">تاريخ التقديم</th>
+                                <th class="p-4">حالة الطلب</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applications-table-body" class="divide-y divide-slate-100">
+                            <!-- Dynamic Applications -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= EMPLOYER VIEW ================= -->
+
+        <!-- TAB EMP 1: DASHBOARD -->
+        <div id="tab-emp-dashboard" class="tab-content space-y-6">
+            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center">
+                <div>
+                    <span class="text-teal-400 text-xs font-bold uppercase">لوحة تحكم صاحب العمل</span>
+                    <h2 class="text-2xl font-bold mt-1">صيدليات ومؤسسات د. شادي الطبية</h2>
+                    <p class="text-slate-400 text-xs">إدارة الوظائف والمتقدمين بسهولة.</p>
+                </div>
+                <button onclick="switchTab('post-job')" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center">
+                    <i class="fa-solid fa-plus ml-2"></i>نشر وظيفة جديدة
+                </button>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-slate-400 text-xs font-semibold">الوظائف النشطة</span>
+                    <h3 id="stat-active-jobs" class="text-3xl font-extrabold text-slate-900 mt-1">3</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-slate-400 text-xs font-semibold">إجمالي المتقدمين</span>
+                    <h3 id="stat-applicants" class="text-3xl font-extrabold text-teal-600 mt-1">2</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-slate-400 text-xs font-semibold">تم اختيارهم للمقابلة</span>
+                    <h3 class="text-3xl font-extrabold text-emerald-600 mt-1">1</h3>
+                </div>
+            </div>
+
+            <!-- Applicants Management (ATS for Employer) -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="font-bold text-slate-900 text-base">إدارة الطلبات المتقدمة لفرصك الوظيفية</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-50 text-slate-700 font-bold border-b">
+                            <tr>
+                                <th class="p-3">اسم الصيدلي</th>
+                                <th class="p-3">الوظيفة المتقدم لها</th>
+                                <th class="p-3">الخبرة والجامعة</th>
+                                <th class="p-3">تحديث الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employer-applicants-tbody" class="divide-y">
+                            <!-- Applicants dynamic list -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB EMP 2: POST A JOB -->
+        <div id="tab-post-job" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-900">نشر فرصة عمل جديدة</h2>
+                <p class="text-slate-500 text-sm">أضف تفاصيل الشفت والراتب والخبرة المطلوبة لاستقطاب أفضل الكوادر الصيدلانية.</p>
+            </div>
+
+            <form onsubmit="handlePostJob(event)" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-2xl">
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div class="col-span-2">
+                        <label class="block font-semibold mb-1">المسمى الوظيفي</label>
+                        <input type="text" id="post-title" required placeholder="مثال: صيدلي شفت مسائي" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">اسم المؤسسة / الصيدلية / الشركة</label>
+                        <input type="text" id="post-company" required placeholder="مثال: صيدليات مصر - فرع المنصورة" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">المجال / التخصص</label>
+                        <select id="post-category" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                            <option value="Community">صيدلية مجتمعية</option>
+                            <option value="Hospital">مستشفى</option>
+                            <option value="Clinical">صيدلة إكلينيكية</option>
+                            <option value="Medical Rep">دعاية طبية (Medical Rep)</option>
+                            <option value="Industry">شركة أدوية / مصنع</option>
+                            <option value="Remote">عن بعد (Remote)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">المحافظة</label>
+                        <input type="text" id="post-location" required placeholder="مثال: المنصورة" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">الراتب المتوقع (ج.م)</label>
+                        <input type="text" id="post-salary" required placeholder="مثال: 6,000 - 8,000 ج.م" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">نوع الشفت / العمل</label>
+                        <input type="text" id="post-shift" required placeholder="مثال: شفت مسائي (8 ساعات)" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">الخبرة المطلوبة</label>
+                        <input type="text" id="post-exp" required placeholder="مثال: 0 - 2 سنة (متاح حديثي التخرج)" class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500">
+                    </div>
+                </div>
+
+                <div class="text-xs">
+                    <label class="block font-semibold mb-1">التفاصيل والمهارات المطلوبة</label>
+                    <textarea id="post-desc" rows="4" required placeholder="اكتب تفاصيل الوظيفة والمهارات والبرامج المطلوبة..." class="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-teal-500"></textarea>
+                </div>
+
+                <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold px-6 py-3 rounded-xl text-xs transition w-full shadow-md">
+                    نشر الوظيفة الآن
+                </button>
+            </form>
+        </div>
+
+        <!-- TAB EMP 3: CANDIDATES DATABASE -->
+        <div id="tab-candidates" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-900">قاعدة بيانات الصيادلة المتاحين للعمل</h2>
+                <p class="text-slate-500 text-sm">تصفح السير الذاتية للصيادلة وتواصل مع الكفاءات مباشرة.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="candidates-grid">
+                <!-- Dynamic Candidate Cards -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-bold text-slate-300">PharmaPath Ecosystem - تم التصميم خصيصاً للصيادلة في مصر</p>
+            <p class="text-slate-500">جميع الحقوق محفوظة © 2026</p>
+        </div>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        // State Management
+        let currentRole = 'pharmacist';
+        let appliedJobIds = [];
+
+        // Initial Data
+        let jobsData = [
+            {
+                id: 1,
+                title: 'صيدلي مجتمعي (شفت مسائي)',
+                company: 'صيدليات الطرشوبي - فرع المنصورة',
+                category: 'Community',
+                location: 'المنصورة',
+                salary: '6,500 - 8,000 ج.م',
+                shift: 'مسائي (8 ساعات)',
+                experience: '0 - 2 سنة',
+                desc: 'مطلوب صيدلي/ة للإشراف على صرف الأدوية وتقديم استشارات الـ OTC للعملاء استخدام برنامج فارما سوفت.',
+                posted: 'منذ ساعتين'
+            },
+            {
+                id: 2,
+                title: 'Medical Representative (دعاية طبية)',
+                company: 'Hikma Pharmaceuticals',
+                category: 'Medical Rep',
+                location: 'القاهرة',
+                salary: '12,000 - 15,000 ج.م + كارت بنزين',
+                shift: 'دوام كامل',
+                experience: 'حديث تخرج إلى سنة',
+                desc: 'تغطية مستشفيات وعيادات القاهرة لخط أدوية القلب والأوعية الدموية. اشترط إجادة الإنجليزية والمظهر الاحترافي.',
+                posted: 'منذ يوم واحد'
+            },
+            {
+                id: 3,
+                title: 'صيدلي إكلينيكي (Clinical Pharmacist)',
+                company: 'مستشفى الشفاء التخصصي',
+                category: 'Clinical',
+                location: 'الإسكندرية',
+                salary: '9,000 - 11,000 ج.م',
+                shift: 'صباحي',
+                experience: 'سنة مع دبلومة إكلينيكية',
+                desc: 'مراجعة جرعات المرضى بالرعاية المركزة والتفاعل مع الفريق الطبي لضمان بروتوكول العلاج الآمن.',
+                posted: 'منذ 3 أيام'
+            }
+        ];
+
+        let applicantsData = [
+            { name: 'د. أحمد محمود', job: 'صيدلي مجتمعي (شفت مسائي)', exp: 'دفعة 2023 - جامعة المنصورة', status: 'Under Review' },
+            { name: 'د. سارة خليل', job: 'Medical Representative', exp: 'دفعة 2024 - جامعة القاهرة', status: 'Shortlisted' }
+        ];
+
+        let candidatesData = [
+            { name: 'د. شادي أحمد', title: 'صيدلي مجتمعي خبرة', location: 'المنصورة', exp: 'سنتين خبرة - برامج Pharmasoft & Dawaya', uni: 'جامعة المنصورة 2024' },
+            { name: 'د. مريم حسين', title: 'صيدلية إكلينيكية / تغذية وريدية', location: 'القاهرة', exp: 'حاصلة على دبلومة الصيدلة الإكلينيكية', uni: 'جامعة عين شمس 2023' }
+        ];
+
+        // Path Explorer Data
+        const careerPathsData = {
+            community: {
+                title: 'الصيدلة المجتمعية (Community Pharmacy)',
+                icon: 'fa-store',
+                desc: 'الواجهة الأولى للرعاية الصحية والتعامل المباشر مع المرضى وصرف العلاج.',
+                skills: ['استشارات OTC', 'التواصل مع المرضى', 'إدارة المخزون والبرمجيات (Pharmasoft)', 'قياس الضغط والسكر'],
+                courses: ['كورس الـ OTC الشامل', 'مهارات البيع والصيدلة المجتمعية'],
+                salary: '5,000 - 9,000 ج.م شهرياً (حسب المحافظة وساعات الشفت)'
+            },
+            hospital: {
+                title: 'صيدلة المستشفيات (Hospital Pharmacy)',
+                icon: 'fa-hospital',
+                desc: 'العمل داخل الأقسام الداخلية للمستشفيات، تحضير المحاليل، وإدارة مخازن الأدوية الرئيسية.',
+                skills: ['معرفة تفاعلات الأدوية للداخلين', 'إدارة المخزون الدوائي', 'تجهيز المحاليل الوريدية المعقمة'],
+                courses: ['دورة إدارة صيدليات المستشفيات', 'بروتوكولات الأمان الدوائي'],
+                salary: '6,500 - 11,000 ج.م شهرياً'
+            },
+            clinical: {
+                title: 'الصيدلة الإكلينيكية (Clinical Pharmacy)',
+                icon: 'fa-stethoscope',
+                desc: 'المشاركة الفعالة مع الأطباء في الرعاية المركزة وأقسام الأورام لضبط الجرعات العلاجية.',
+                skills: ['حساب الجرعات المعقدة (TDM)', 'تقييم التحاليل الطبية', 'متابعة التداخلات الدوائية الخطرة'],
+                courses: ['البورد الأمريكي (BCPS)', 'دبلومة الصيدلة الإكلينيكية المعتمدة'],
+                salary: '9,000 - 18,000+ ج.م شهرياً'
+            },
+            medrep: {
+                title: 'الدعاية الطبية (Medical Representative)',
+                icon: 'fa-briefcase',
+                desc: 'تمثيل شركات الأدوية المحلية والدولية والتواصل مع الأطباء للتسويق العلمي للمستحضرات.',
+                skills: ['مهارات التفاوض والإقناع', 'العرض العلمي (Scientific Selling)', 'اللغة الإنجليزية الممتازة'],
+                courses: ['Medical Rep Training Program', 'Advanced Communication Skills'],
+                salary: '10,000 - 25,000+ ج.م + العمولات والبدلات'
+            },
+            remote: {
+                title: 'الصيدلة أونلاين وعن بُعد (Remote Pharmacy)',
+                icon: 'fa-laptop-code',
+                desc: 'الاستشارات الدوائية أونلاين، كتابة المحتوى الطبي، وتدقيق قواعد البيانات الدوائية.',
+                skills: ['كتابة المحتوى الطبي (Medical Writing)', 'المعلوماتية الدوائية', 'الاستشارات الطبية عبر تطبيقات Telehealth'],
+                courses: ['كورس Medical Copywriting', 'أساسيات الصيدلة الرقمية'],
+                salary: '400$ - 1,200$ شهرياً (في حالة العمل مع شركات خارجية)'
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderJobs();
+            showPathDetail('community');
+            updateCV();
+            renderApplications();
+            renderEmployerApplicants();
+            renderCandidates();
+        });
+
+        // Switch Main Role (Pharmacist / Employer)
+        function toggleMainRole() {
+            if (currentRole === 'pharmacist') {
+                switchMainRole('employer');
+            } else {
+                switchMainRole('pharmacist');
+            }
+        }
+
+        function switchMainRole(role) {
+            currentRole = role;
+            const roleBtnText = document.getElementById('role-btn-text');
+            const pNav = document.getElementById('pharmacist-nav');
+            const eNav = document.getElementById('employer-nav');
+
+            if (role === 'employer') {
+                roleBtnText.innerText = 'التحويل لحساب الصيدلي';
+                pNav.classList.add('hidden');
+                eNav.classList.remove('hidden');
+                eNav.classList.add('flex');
+                switchTab('emp-dashboard');
+            } else {
+                roleBtnText.innerText = 'حساب الشركات والصيدليات';
+                eNav.classList.add('hidden');
+                pNav.classList.remove('hidden');
+                pNav.classList.add('flex');
+                switchTab('jobs');
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn, .emp-nav-btn').forEach(btn => {
+                btn.classList.remove('text-teal-400', 'font-bold');
+                btn.classList.add('text-slate-300');
+            });
+
+            const targetContent = document.getElementById(`tab-${tabId}`);
+            if (targetContent) targetContent.classList.add('active');
+
+            const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-300');
+                activeBtn.classList.add('text-teal-400', 'font-bold');
+            }
+        }
+
+        // Render Job Cards
+        function renderJobs(filteredList = jobsData) {
+            const container = document.getElementById('job-list-container');
+            container.innerHTML = '';
+
+            if (filteredList.length === 0) {
+                container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-500 border">لا توجد وظائف مطابقة للبحث حالياً.</div>`;
+                return;
+            }
+
+            filteredList.forEach(job => {
+                const isApplied = appliedJobIds.includes(job.id);
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 font-bold px-2 py-0.5 rounded-md">${job.category}</span>
+                            <h3 class="font-extrabold text-slate-900 text-base mt-1">${job.title}</h3>
+                            <p class="text-xs text-slate-600 font-medium">${job.company}</p>
+                        </div>
+                        <span class="text-[11px] text-slate-400">${job.posted}</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl">
+                        <div><i class="fa-solid fa-location-dot text-teal-600 ml-1"></i>${job.location}</div>
+                        <div><i class="fa-solid fa-money-bill-wave text-teal-600 ml-1"></i>${job.salary}</div>
+                        <div><i class="fa-solid fa-clock text-teal-600 ml-1"></i>${job.shift}</div>
+                    </div>
+
+                    <p class="text-xs text-slate-500 leading-relaxed">${job.desc}</p>
+
+                    <div class="flex justify-between items-center pt-2 border-t">
+                        <span class="text-[11px] text-slate-400">الخبرة: ${job.experience}</span>
+                        <button onclick="applyJob(${job.id})" ${isApplied ? 'disabled' : ''} class="${isApplied ? 'bg-slate-300 text-slate-600 cursor-not-allowed' : 'bg-teal-500 hover:bg-teal-400 text-slate-900 shadow-md shadow-teal-500/20'} font-bold px-4 py-2 rounded-xl text-xs transition">
+                            ${isApplied ? 'تم التقديم <i class="fa-solid fa-check mr-1"></i>' : 'تقديم الآن'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Apply for Job
+        function applyJob(jobId) {
+            if (!appliedJobIds.includes(jobId)) {
+                appliedJobIds.push(jobId);
+                const job = jobsData.find(j => j.id === jobId);
+                if (job) {
+                    applicantsData.push({
+                        name: 'د. شادي أحمد (أنت)',
+                        job: job.title,
+                        exp: 'حديث تخرج - جامعة المنصورة',
+                        status: 'Applied'
+                    });
+                }
+                document.getElementById('app-badge').innerText = appliedJobIds.length;
+                document.getElementById('app-badge').classList.remove('hidden');
+                renderJobs();
+                renderApplications();
+                renderEmployerApplicants();
+                alert('تم تقديم طلبك بنجاح!');
+            }
+        }
+
+        // Filter Jobs
+        function filterJobs() {
+            const titleVal = document.getElementById('search-title').value.toLowerCase();
+            const locVal = document.getElementById('search-location').value;
+
+            const filtered = jobsData.filter(job => {
+                const matchesTitle = job.title.toLowerCase().includes(titleVal) || job.desc.toLowerCase().includes(titleVal);
+                const matchesLoc = locVal === '' || job.location.includes(locVal);
+                return matchesTitle && matchesLoc;
+            });
+            renderJobs(filtered);
+        }
+
+        function filterCategory(cat) {
+            if (cat === 'all') {
+                renderJobs(jobsData);
+            } else {
+                const filtered = jobsData.filter(j => j.category === cat);
+                renderJobs(filtered);
+            }
+        }
+
+        // Show Career Path Details
+        function showPathDetail(pathKey) {
+            const data = careerPathsData[pathKey];
+            const container = document.getElementById('path-detail-container');
+            
+            document.querySelectorAll('.path-btn').forEach(btn => btn.classList.remove('border-teal-500', 'bg-teal-50'));
+            const activeBtn = document.querySelector(`[data-path="${pathKey}"]`);
+            if(activeBtn) activeBtn.classList.add('border-teal-500', 'bg-teal-50');
+
+            container.innerHTML = `
+                <div class="flex items-center space-x-3 space-x-reverse border-b pb-4">
+                    <div class="w-12 h-12 bg-teal-500/10 text-teal-600 rounded-2xl flex items-center justify-center text-2xl">
+                        <i class="fa-solid ${data.icon}"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">${data.title}</h3>
+                        <p class="text-xs text-slate-500">${data.desc}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-50 p-4 rounded-xl border">
+                        <h4 class="font-bold text-slate-800 mb-2 text-sm text-teal-700">المهارات والقدرات المطلوبة:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            ${data.skills.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border">
+                        <h4 class="font-bold text-slate-800 mb-2 text-sm text-teal-700">الدورات والشهادات الموصى بها:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            ${data.courses.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-xs flex justify-between items-center">
+                    <span class="font-bold text-emerald-900">متوسط الراتب المتوقع في السوق:</span>
+                    <span class="font-extrabold text-emerald-700 text-sm">${data.salary}</span>
+                </div>
+            `;
+        }
+
+        // Live CV Builder Update
+        function updateCV() {
+            document.getElementById('pv-name').innerText = document.getElementById('cv-name').value || 'الاسم الكامل';
+            document.getElementById('pv-title').innerText = document.getElementById('cv-title').value || 'المسمى الوظيفي';
+            document.getElementById('pv-email').innerText = document.getElementById('cv-email').value || 'الإيميل';
+            document.getElementById('pv-phone').innerText = document.getElementById('cv-phone').value || 'رقم الهاتف';
+            document.getElementById('pv-city').innerText = document.getElementById('cv-city').value || 'المافظة';
+            document.getElementById('pv-uni').innerText = document.getElementById('cv-uni').value || 'الجامعة والدفعة';
+            document.getElementById('pv-summary').innerText = document.getElementById('cv-summary').value || 'نبذة عنك...';
+            document.getElementById('pv-software').innerText = document.getElementById('cv-software').value || 'البرامج...';
+
+            const skillsArr = document.getElementById('cv-skills').value.split(',');
+            const tagsContainer = document.getElementById('pv-skills-tags');
+            tagsContainer.innerHTML = '';
+            skillsArr.forEach(s => {
+                if (s.trim()) {
+                    tagsContainer.innerHTML += `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold">${s.trim()}</span>`;
+                }
+            });
+        }
+
+        // Render Applications Table
+        function renderApplications() {
+            const tbody = document.getElementById('applications-table-body');
+            tbody.innerHTML = '';
+
+            if (applicantsData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">لم تقم بالتقديم على أي وظيفة بعد.</td></tr>`;
+                return;
+            }
+
+            applicantsData.forEach(app => {
+                let badgeClass = 'bg-amber-100 text-amber-800';
+                let statusText = 'قيد المراجعة';
+                if (app.status === 'Shortlisted') { badgeClass = 'bg-emerald-100 text-emerald-800'; statusText = 'تم اختيارك للمقابلة'; }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-4 font-bold text-slate-900">${app.job}</td>
+                        <td class="p-4 text-slate-600">مؤسسة طبية</td>
+                        <td class="p-4 text-slate-600">المنصورة / القاهرة</td>
+                        <td class="p-4 text-slate-400">اليوم</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${statusText}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Employer Actions & Post Job
+        function handlePostJob(e) {
+            e.preventDefault();
+            const newJob = {
+                id: jobsData.length + 1,
+                title: document.getElementById('post-title').value,
+                company: document.getElementById('post-company').value,
+                category: document.getElementById('post-category').value,
+                location: document.getElementById('post-location').value,
+                salary: document.getElementById('post-salary').value,
+                shift: document.getElementById('post-shift').value,
+                experience: document.getElementById('post-exp').value,
+                desc: document.getElementById('post-desc').value,
+                posted: 'الآن'
+            };
+
+            jobsData.unshift(newJob);
+            document.getElementById('stat-active-jobs').innerText = jobsData.length;
+            renderJobs();
+            alert('تم نشر الوظيفة بنجاح وستظهر فوراً للصيادلة!');
+            switchTab('emp-dashboard');
+        }
+
+        function renderEmployerApplicants() {
+            const tbody = document.getElementById('employer-applicants-tbody');
+            tbody.innerHTML = '';
+            document.getElementById('stat-applicants').innerText = applicantsData.length;
+
+            applicantsData.forEach((app, idx) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-3 font-bold">${app.name}</td>
+                        <td class="p-3 text-slate-600">${app.job}</td>
+                        <td class="p-3 text-slate-500">${app.exp}</td>
+                        <td class="p-3">
+                            <select onchange="updateApplicantStatus(${idx}, this.value)" class="border rounded p-1 text-[11px]">
+                                <option value="Applied" ${app.status === 'Applied' ? 'selected' : ''}>جديد</option>
+                                <option value="Under Review" ${app.status === 'Under Review' ? 'selected' : ''}>قيد المراجعة</option>
+                                <option value="Shortlisted" ${app.status === 'Shortlisted' ? 'selected' : ''}>تحديد مقابلة</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateApplicantStatus(idx, newStatus) {
+            applicantsData[idx].status = newStatus;
+            renderApplications();
+        }
+
+        function renderCandidates() {
+            const grid = document.getElementById('candidates-grid');
+            grid.innerHTML = '';
+            candidatesData.forEach(c => {
+                grid.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">${c.name}</h4>
+                                <p class="text-xs text-teal-600 font-semibold">${c.title}</p>
+                            </div>
+                            <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded"><i class="fa-solid fa-location-dot ml-1"></i>${c.location}</span>
+                        </div>
+                        <p class="text-xs text-slate-500">${c.exp}</p>
+                        <p class="text-[11px] text-slate-400">${c.uni}</p>
+                        <button onclick="alert('تم إرسال طلب تواصل للصيدلي!')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-xl text-xs transition mt-2">
+                            تواصل مع الصيدلي
+                        </button>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
